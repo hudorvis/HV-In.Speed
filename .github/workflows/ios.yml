@@ -1,0 +1,50 @@
+name: Build In.Speed
+run-name: In.Speed v26.11.19.01
+on: [push, workflow_dispatch]
+jobs:
+  archive:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile the unsigned device archive
+        run: |
+          xcodebuild -project InSpeed.xcodeproj -scheme InSpeed -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/In.Speed.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO archive
+          ditto -c -k --keepParent "$RUNNER_TEMP/In.Speed.xcarchive" In.Speed-unsigned.xcarchive.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: In.Speed v26.11.19.01
+          path: In.Speed-unsigned.xcarchive.zip
+          if-no-files-found: error
+  tests:
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        family: [iPhone, iPad]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test trip calculations and storage
+        run: swiftc InSpeed/Models.swift InSpeed/TripStore.swift Tests/main.swift -o "$RUNNER_TEMP/trip-tests" && "$RUNNER_TEMP/trip-tests"
+      - name: Select and boot simulator
+        env:
+          FAMILY: ${{ matrix.family }}
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys,os; print(next(d["udid"] for k,ds in sorted(json.load(sys.stdin)["devices"].items(),reverse=True) if ".iOS-" in k for d in ds if d["name"].startswith(os.environ["FAMILY"])))')
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+      - name: Build and exercise both orientations
+        run: |
+          args=(-project InSpeed.xcodeproj -scheme InSpeed -destination "platform=iOS Simulator,id=$UDID" -derivedDataPath "$RUNNER_TEMP/InSpeedBuild" -parallel-testing-enabled NO)
+          xcodebuild "${args[@]}" build-for-testing
+          xcrun simctl install "$UDID" "$RUNNER_TEMP/InSpeedBuild/Build/Products/Debug-iphonesimulator/In.Speed.app"
+          xcrun simctl privacy "$UDID" grant location au.h-v.in.speed
+          xcrun simctl location "$UDID" set "-37.814,144.963"
+          xcodebuild "${args[@]}" -resultBundlePath InSpeed.xcresult test-without-building
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: InSpeed-${{ matrix.family }}-results
+          path: InSpeed.xcresult

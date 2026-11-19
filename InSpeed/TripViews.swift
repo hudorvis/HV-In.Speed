@@ -40,6 +40,7 @@ struct TripViews: View {
                                     Text(t.activity.rawValue)
                                     Text(t.start.formatted(date:.abbreviated,time:.shortened)).font(.caption).foregroundStyle(.secondary)
                                 }; Spacer(); Text(distance(t.metres)); Image(systemName:"chevron.right").font(.caption).foregroundStyle(.secondary) }
+                                    .contentShape(Rectangle())
                             }.buttonStyle(.plain)
                         }
                     } else if section == "Totals" {

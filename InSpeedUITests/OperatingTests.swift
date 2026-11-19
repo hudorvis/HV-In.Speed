@@ -15,11 +15,14 @@ final class OperatingTests: XCTestCase {
             XCTAssertTrue(control.isHittable)
             XCTAssertEqual(control.label, "STOP")
             let liveTab = app.buttons["Live"]
-            if orientation == .portrait {
-                XCTAssertGreaterThan(control.frame.minY, liveTab.frame.maxY)
-            } else {
-                XCTAssertGreaterThan(control.frame.minX, liveTab.frame.maxX)
+            let layoutReady = NSPredicate { _, _ in
+                if orientation == .portrait {
+                    return control.frame.minY > liveTab.frame.maxY
+                }
+                return control.frame.minX > liveTab.frame.maxX
             }
+            let settled = XCTNSPredicateExpectation(predicate: layoutReady, object: nil)
+            XCTAssertEqual(XCTWaiter.wait(for: [settled], timeout: 8), .completed)
             app.buttons["Compass"].tap()
             XCTAssertEqual(control.label, "STOP")
             app.buttons["Speed"].tap()
@@ -47,6 +50,7 @@ final class OperatingTests: XCTestCase {
         let saved = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Driving")).firstMatch
         XCTAssertTrue(saved.waitForExistence(timeout: 5))
         saved.tap()
-        XCTAssertTrue(app.navigationBars["Trip details"].exists)
+        XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Started")).firstMatch.exists)
     }
 }

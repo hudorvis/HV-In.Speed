@@ -14,12 +14,20 @@ final class OperatingTests: XCTestCase {
             XCUIDevice.shared.orientation = orientation
             XCTAssertTrue(control.isHittable)
             XCTAssertEqual(control.label, "STOP")
+            let liveTab = app.buttons["Live"]
+            if orientation == .portrait {
+                XCTAssertGreaterThan(control.frame.minY, liveTab.frame.maxY)
+            } else {
+                XCTAssertGreaterThan(control.frame.minX, liveTab.frame.maxX)
+            }
             app.buttons["Compass"].tap()
             XCTAssertEqual(control.label, "STOP")
             app.buttons["Speed"].tap()
             app.buttons["Trips"].tap()
             app.buttons["Totals"].tap()
-            XCTAssertTrue(app.staticTexts["Total trips"].exists)
+            let totalTrips = app.descendants(matching: .any)
+                .matching(NSPredicate(format: "label BEGINSWITH %@", "Total trips")).firstMatch
+            XCTAssertTrue(totalTrips.waitForExistence(timeout: 5))
             app.buttons["Live"].tap()
             XCTAssertEqual(control.label, "STOP")
             let attachment = XCTAttachment(screenshot: app.screenshot())
@@ -36,7 +44,7 @@ final class OperatingTests: XCTestCase {
         XCTAssertEqual(control.label, "START")
         app.buttons["Trips"].tap()
         app.buttons["History"].tap()
-        let saved = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Driving")).first
+        let saved = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Driving")).firstMatch
         XCTAssertTrue(saved.waitForExistence(timeout: 5))
         saved.tap()
         XCTAssertTrue(app.navigationBars["Trip details"].exists)

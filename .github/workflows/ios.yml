@@ -31,7 +31,27 @@ jobs:
         env:
           FAMILY: ${{ matrix.family }}
         run: |
-          UDID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys,os; print(next(d["udid"] for k,ds in sorted(json.load(sys.stdin)["devices"].items(),reverse=True) if ".iOS-" in k for d in ds if d["name"].startswith(os.environ["FAMILY"])))')
+          sdk=$(xcrun --sdk iphonesimulator --show-sdk-version)
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          family, sdk = sys.argv[1:]
+          sdk = tuple(map(int, sdk.split(".")[:2]))
+          devices = json.load(sys.stdin)["devices"]
+          candidates = {}
+          for runtime, group in devices.items():
+              if ".iOS-" in runtime:
+                  version = tuple(map(int, runtime.split(".iOS-")[-1].split("-")[:2]))
+                  for device in group:
+                      if version >= (17,) and device["name"].startswith(family):
+                          candidates.setdefault(version, device)
+          if not candidates:
+              sys.exit(f"No available iOS 17 or later simulator for {family}")
+          compatible = [version for version in candidates if version <= sdk]
+          version = max(compatible) if compatible else min(candidates)
+          device = candidates[version]
+          print("Selected", device["name"], "on iOS", version, "for SDK", sdk, file=sys.stderr)
+          print(device["udid"])
+          ' "$FAMILY" "$sdk")
           echo "UDID=$UDID" >> "$GITHUB_ENV"
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b

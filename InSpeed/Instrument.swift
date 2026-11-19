@@ -17,8 +17,12 @@ struct Instrument: View {
                 Canvas { context, size in
                     let centre = CGPoint(x: size.width / 2, y: size.height / 2)
                     func point(_ fraction: Double, _ radius: CGFloat) -> CGPoint {
-                        let angle = (compass ? fraction * 360 - 90 : fraction * 300 + 120) * .pi / 180
-                        return CGPoint(x: centre.x + cos(angle) * side * radius, y: centre.y + sin(angle) * side * radius)
+                        let degrees = compass ? fraction * 360 - 90 : fraction * 300 + 120
+                        let angle = CGFloat(degrees) * CGFloat.pi / 180
+                        let dx: CGFloat = cos(angle)
+                        let dy: CGFloat = sin(angle)
+                        return CGPoint(x: centre.x + dx * side * radius,
+                                       y: centre.y + dy * side * radius)
                     }
                     func dot(_ point: CGPoint, _ diameter: CGFloat, _ colour: Color) {
                         context.fill(Path(ellipseIn: CGRect(x: point.x-diameter/2, y: point.y-diameter/2, width: diameter, height: diameter)), with: .color(colour))

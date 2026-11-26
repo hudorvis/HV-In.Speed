@@ -1,6 +1,6 @@
-# In.Speed v26.11.19.01
+# In.Speed v26.11.26.01
 
-Universal iOS 17+ app, build 2. Open `InSpeed.xcodeproj` and select the shared InSpeed scheme. For a physical device, select your Apple development team under Signing & Capabilities. The app identifier is `au.h-v.in.speed`. The intended Australian price is A$7.99 and is set in App Store Connect.
+Universal iOS 17+ app, build 3. Open `InSpeed.xcodeproj` and select the shared InSpeed scheme. For a physical device, select your Apple development team under Signing & Capabilities. The app identifier is `au.h-v.in.speed`. The intended Australian price is A$7.99 and is set in App Store Connect.
 
 **Recording.** Start a trip from Speed or Compass. The selected activity determines the speed range and movement thresholds. The range expands when the current trip exceeds the base scale. The bottom-left menu changes the unit system at any time. GPS travel direction takes precedence while moving. At low speeds the compass uses the device heading, with magnetic north as a fallback when true north is unavailable.
 

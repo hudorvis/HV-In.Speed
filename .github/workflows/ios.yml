@@ -1,5 +1,5 @@
 name: Build In.Speed
-run-name: In.Speed v26.11.19.01
+run-name: In.Speed v26.11.26.01
 on: [push, workflow_dispatch]
 jobs:
   archive:
@@ -14,7 +14,7 @@ jobs:
           ditto -c -k --keepParent "$RUNNER_TEMP/In.Speed.xcarchive" In.Speed-unsigned.xcarchive.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: In.Speed v26.11.19.01
+          name: In.Speed v26.11.26.01
           path: In.Speed-unsigned.xcarchive.zip
           if-no-files-found: error
   tests:

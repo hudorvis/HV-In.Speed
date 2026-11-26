@@ -54,7 +54,7 @@ struct TripViews: View {
                             LabeledContent("Storage",value:"On this device")
                         } footer: { Text("In.Speed saves trip summaries locally. GPS coordinates are used during recording and are never written to trip history.") }
                         Button("Clear trip history",role:.destructive) { confirm = true }.disabled(trips.isEmpty)
-                        LabeledContent("Revision",value:"In.Speed v26.11.19.01")
+                        LabeledContent("Revision",value:"In.Speed v26.11.26.01")
                     }
                 }.scrollContentBackground(.hidden)
             }

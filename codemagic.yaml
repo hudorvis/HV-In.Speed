@@ -21,3 +21,36 @@ workflows:
           ditto -c -k --keepParent build/In.Speed.xcarchive build/In.Speed-unsigned.xcarchive.zip
     artifacts:
       - build/In.Speed-unsigned.xcarchive.zip
+
+  inspeed-testflight:
+    name: In.Speed TestFlight Upload
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: In.Sync
+    environment:
+      xcode: "26.4"
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: au.h-v.in.speed
+    scripts:
+      - name: Test trip calculations and storage
+        script: |
+          set -eu
+          swiftc InSpeed/Models.swift InSpeed/TripStore.swift Tests/main.swift -o "$TMPDIR/trip-tests"
+          "$TMPDIR/trip-tests"
+      - name: Apply distribution profile and build signed IPA
+        script: |
+          set -eu
+          xcode-project use-profiles
+          source_build=$(agvtool what-version -terse | head -1 | tr -d '[:space:]')
+          agvtool new-version -all "$((source_build + PROJECT_BUILD_NUMBER - 1))"
+          xcode-project build-ipa --project InSpeed.xcodeproj --scheme InSpeed
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: false
+        submit_to_app_store: false

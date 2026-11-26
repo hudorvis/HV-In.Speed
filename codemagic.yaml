@@ -29,7 +29,7 @@ workflows:
     integrations:
       app_store_connect: In.Sync
     environment:
-      xcode: "26.4"
+      xcode: "27.1"
       ios_signing:
         distribution_type: app_store
         bundle_identifier: au.h-v.in.speed

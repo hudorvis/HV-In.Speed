@@ -1,0 +1,23 @@
+workflows:
+  inspeed-ios:
+    name: In.Speed iOS Compile
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      xcode: latest
+    scripts:
+      - name: Test trip calculations and storage
+        script: |
+          set -eu
+          swiftc InSpeed/Models.swift InSpeed/TripStore.swift Tests/main.swift -o "$TMPDIR/trip-tests"
+          "$TMPDIR/trip-tests"
+      - name: Compile unsigned iOS Release archive
+        script: |
+          set -eu
+          mkdir -p build
+          xcodebuild -project InSpeed.xcodeproj -scheme InSpeed -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath build/In.Speed.xcarchive \
+            CODE_SIGNING_ALLOWED=NO archive
+          ditto -c -k --keepParent build/In.Speed.xcarchive build/In.Speed-unsigned.xcarchive.zip
+    artifacts:
+      - build/In.Speed-unsigned.xcarchive.zip
